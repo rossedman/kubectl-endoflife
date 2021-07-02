@@ -60,6 +60,8 @@ var getNodesCmd = &cobra.Command{
 				{Name: "Role", Type: "string"},
 				{Name: "Name", Type: "string"},
 				{Name: "SID", Type: "string"},
+				{Name: "Instance ID", Type: "string"},
+				{Name: "Instance Type", Type: "string"},
 				{Name: "Status", Type: "string"},
 			},
 		}
@@ -75,12 +77,16 @@ var getNodesCmd = &cobra.Command{
 					status = strings.Join([]string{status, string(c.Type)}, ",")
 				}
 			}
+			// get labels
+			labels := n.GetLabels()
 			// create row
 			t.Rows = append(t.Rows, metav1.TableRow{
 				Cells: []interface{}{
-					n.GetLabels()["twilio.com/role"],
+					labels["twilio.com/role"],
 					n.Name,
-					n.GetLabels()["twilio.com/host-sid"],
+					labels["twilio.com/host-sid"],
+					strings.Split(n.Spec.ProviderID, "/")[4],
+					labels["beta.kubernetes.io/instance-type"],
 					status,
 				},
 			})
