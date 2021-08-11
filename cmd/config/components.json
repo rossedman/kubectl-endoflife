@@ -1,0 +1,36 @@
+{
+    "v1.19": [
+        {
+            "Name": "cert-manager",
+            "Version": "1.4.0"
+        },
+        {
+            "Name": "coredns",
+            "Version": "1.8.4"
+        },
+        {
+            "Name": "kube-proxy",
+            "Version": "1.19.6-eksbuild.2"
+        },
+        {
+            "Name": "kube-state-metrics",
+            "Version": "2.1.0"
+        },
+        {
+            "Name": "metrics-server",
+            "Version": "0.5.0"
+        },
+        {
+            "Name": "node-problem-detector",
+            "Version": "0.8.9"
+        },
+        {
+            "Name": "nvidia-device-plugin",
+            "Version": "0.9.0"
+        },
+        {
+            "Name": "cluster-autoscaler",
+            "Version": "1.19"
+        }
+    ]
+}
