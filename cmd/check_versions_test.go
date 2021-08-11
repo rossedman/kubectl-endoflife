@@ -38,8 +38,13 @@ func TestGetRequiredVersions(t *testing.T) {
 		},
 	}
 
+	versions, err := loadKubernetesVersions()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	for _, test := range cases {
-		actual, err := getRequiredVersion("v1.19", test.Name)
+		actual, err := getRequiredVersion(versions, "v1.19", test.Name)
 		if err != nil {
 			t.Fatal(err)
 		}

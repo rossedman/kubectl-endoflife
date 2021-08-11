@@ -78,11 +78,16 @@ var getVersionsCmd = &cobra.Command{
 			return err
 		}
 
+		versions, err := loadKubernetesVersions()
+		if err != nil {
+			return err
+		}
+
 		// loop through services
 		for _, s := range svcs {
 			// walk through required versions and
 			// find the matching service
-			req, err := getRequiredVersion(kubeVersion, s.Name)
+			req, err := getRequiredVersion(versions, kubeVersion, s.Name)
 			if err != nil {
 				return err
 			}
@@ -121,11 +126,7 @@ func isOutOfDate(required, current string) (bool, error) {
 	return r.Compare(c) > 0, nil
 }
 
-func getRequiredVersion(kubernetesVersion string, serviceName string) (string, error) {
-	var versions KubernetesVersions
-	if err := json.Unmarshal(componentsConfig, &versions); err != nil {
-		return "", fmt.Errorf("unable to read components configuration: %w", err)
-	}
+func getRequiredVersion(versions KubernetesVersions, kubernetesVersion string, serviceName string) (string, error) {
 	for _, e := range versions[kubernetesVersion] {
 		if e.Name == serviceName {
 			return e.Version, nil
@@ -176,4 +177,12 @@ func getAllServices(clientset *kubernetes.Clientset, namespaces []string) (Servi
 		svcs = append(svcs, daemons...)
 	}
 	return svcs, nil
+}
+
+func loadKubernetesVersions() (KubernetesVersions, error) {
+	var versions KubernetesVersions
+	if err := json.Unmarshal(componentsConfig, &versions); err != nil {
+		return nil, fmt.Errorf("unable to read components configuration: %w", err)
+	}
+	return versions, nil
 }
