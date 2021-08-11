@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"os"
 	"strings"
 
@@ -11,6 +13,8 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/cli-runtime/pkg/printers"
 	"k8s.io/client-go/kubernetes"
+
+	_ "embed"
 
 	"github.com/blang/semver/v4"
 )
@@ -49,22 +53,8 @@ type Services []Service
 // that can be used for reference
 type KubernetesVersions map[string]Services
 
-// This is the source of truth for what versions
-// belong on which servers
-var (
-	versions = KubernetesVersions{
-		"v1.19": Services{
-			{Name: "cert-manager", Version: "1.4.0"},
-			{Name: "coredns", Version: "1.8.4"},
-			{Name: "kube-proxy", Version: "1.19.6-eksbuild.2"},
-			{Name: "kube-state-metrics", Version: "2.1.0"},
-			{Name: "metrics-server", Version: "0.5.0"},
-			{Name: "node-problem-detector", Version: "0.8.9"},
-			{Name: "nvidia-device-plugin", Version: "0.9.0"},
-			{Name: "cluster-autoscaler", Version: "1.19"},
-		},
-	}
-)
+//go:embed config/components.json
+var componentsConfig []byte
 
 var getVersionsCmd = &cobra.Command{
 	Use:   "versions",
@@ -88,11 +78,19 @@ var getVersionsCmd = &cobra.Command{
 			return err
 		}
 
+		versions, err := loadKubernetesVersions()
+		if err != nil {
+			return err
+		}
+
 		// loop through services
 		for _, s := range svcs {
 			// walk through required versions and
 			// find the matching service
-			req := getRequiredVersion(kubeVersion, s.Name)
+			req, err := getRequiredVersion(versions, kubeVersion, s.Name)
+			if err != nil {
+				return err
+			}
 			if req == "unknown" {
 				continue
 			}
@@ -128,13 +126,13 @@ func isOutOfDate(required, current string) (bool, error) {
 	return r.Compare(c) > 0, nil
 }
 
-func getRequiredVersion(kubernetesVersion string, serviceName string) string {
+func getRequiredVersion(versions KubernetesVersions, kubernetesVersion string, serviceName string) (string, error) {
 	for _, e := range versions[kubernetesVersion] {
 		if e.Name == serviceName {
-			return e.Version
+			return e.Version, nil
 		}
 	}
-	return "unknown"
+	return "unknown", nil
 }
 
 func getDeployments(clientset *kubernetes.Clientset, namespace string) (Services, error) {
@@ -179,4 +177,12 @@ func getAllServices(clientset *kubernetes.Clientset, namespaces []string) (Servi
 		svcs = append(svcs, daemons...)
 	}
 	return svcs, nil
+}
+
+func loadKubernetesVersions() (KubernetesVersions, error) {
+	var versions KubernetesVersions
+	if err := json.Unmarshal(componentsConfig, &versions); err != nil {
+		return nil, fmt.Errorf("unable to read components configuration: %w", err)
+	}
+	return versions, nil
 }
