@@ -34,7 +34,7 @@ func TestGetRequiredVersions(t *testing.T) {
 		},
 		{
 			Name:    "cluster-autoscaler",
-			Version: "1.19",
+			Version: "1.19.0",
 		},
 	}
 

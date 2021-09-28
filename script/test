@@ -2,4 +2,4 @@
 #
 # run tests for application
 # add a comment here
-go test -coverprofile=coverage.out -race -v ./... > coverage.txt
+go test -coverprofile=coverage.out -race -v ./...
