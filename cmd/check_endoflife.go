@@ -16,15 +16,12 @@ import (
 var (
 	getEKS        bool
 	getKubernetes bool
-
-// getVersionNext bool
 )
 
 func init() {
-	checkCmd.AddCommand(endOfLifeCmd)
+	rootCmd.AddCommand(endOfLifeCmd)
 	endOfLifeCmd.PersistentFlags().BoolVarP(&getEKS, "eks", "e", false, "retrieve EKS endoflife data")
 	endOfLifeCmd.PersistentFlags().BoolVarP(&getKubernetes, "kubernetes", "k", true, "retrieve Kubernetes endoflife data")
-	// getVersionsCmd.PersistentFlags().BoolVarP(&getVersionNext, "next", "n", false, "get next version information")
 }
 
 // AmazonEKSRelease represents the data found at

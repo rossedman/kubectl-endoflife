@@ -24,22 +24,9 @@ var (
 )
 
 func init() {
-	checkCmd.AddCommand(getVersionsCmd)
+	rootCmd.AddCommand(getVersionsCmd)
 	getVersionsCmd.PersistentFlags().StringVarP(&kubeVersion, "kube-version", "k", "v1.19", "the version of dependencies to check against")
 }
-
-// need to retrieve these components as well as current version, required version for upgrade
-// 		aws-cni
-//		aws-alb-controller
-//		cert-manager
-//		coredns
-//		kube-proxy
-//		kube-state-metrics
-//		metrics-server
-//		node-problem-detector
-//		nvidia-device-plugin
-//		cluster-autoscaler
-//
 
 type Service struct {
 	Name    string
@@ -73,11 +60,14 @@ var getVersionsCmd = &cobra.Command{
 		}
 
 		// get all the current versions of deployments running in kube-system
+		// 	TODO(redman): make namespaces configurable through flags
 		svcs, err := getAllServices(clientset, []string{"kube-system", "platform", "cert-manager"})
 		if err != nil {
 			return err
 		}
 
+		// load the data from the embedded config
+		//	TODO(redman): allow override of embedded config for custom configuration
 		versions, err := loadKubernetesVersions()
 		if err != nil {
 			return err
@@ -95,6 +85,7 @@ var getVersionsCmd = &cobra.Command{
 				continue
 			}
 
+			// if is latest, depend and set to false
 			if s.Version == "latest" {
 				t.Rows = append(t.Rows, metav1.TableRow{
 					Cells: []interface{}{s.Name, false, s.Version, req},
@@ -102,6 +93,7 @@ var getVersionsCmd = &cobra.Command{
 				continue
 			}
 
+			// determine if component is out of date
 			o, err := isOutOfDate(req, s.Version)
 			if err != nil {
 				return fmt.Errorf("failed to calculate out of date for %s: %s", s.Name, err)
@@ -119,6 +111,9 @@ var getVersionsCmd = &cobra.Command{
 	},
 }
 
+// isOutOfDate takes two semantic version numbers and compares
+// them to determine whether the current version is above or
+// equal to the required version.
 func isOutOfDate(required, current string) (bool, error) {
 	r, err := semver.Make(strings.ReplaceAll(required, "v", ""))
 	if err != nil {
@@ -186,6 +181,8 @@ func getAllServices(clientset *kubernetes.Clientset, namespaces []string) (Servi
 	return svcs, nil
 }
 
+// loadKubernetesVersions take the config that is embedded and unmarshals
+// it into a a struct that can be worked with
 func loadKubernetesVersions() (KubernetesVersions, error) {
 	var versions KubernetesVersions
 	if err := json.Unmarshal(componentsConfig, &versions); err != nil {
