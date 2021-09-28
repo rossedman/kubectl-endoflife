@@ -89,15 +89,22 @@ var getVersionsCmd = &cobra.Command{
 			// find the matching service
 			req, err := getRequiredVersion(versions, kubeVersion, s.Name)
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to get required version for %s: %s", s.Name, err)
 			}
 			if req == "unknown" {
 				continue
 			}
 
+			if s.Version == "latest" {
+				t.Rows = append(t.Rows, metav1.TableRow{
+					Cells: []interface{}{s.Name, false, s.Version, req},
+				})
+				continue
+			}
+
 			o, err := isOutOfDate(req, s.Version)
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to calculate out of date for %s: %s", s.Name, err)
 			}
 
 			t.Rows = append(t.Rows, metav1.TableRow{
