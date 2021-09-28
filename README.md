@@ -1,4 +1,4 @@
-# kubectl-tks
+# kubectl-check
 
 ![example](preview.png)
 
