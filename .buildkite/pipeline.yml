@@ -1,6 +1,6 @@
 steps:
 - label: "Run unit tests and generate coverage"
-  commands: "scripts/test"
+  commands: "script/test"
   plugins:
     - docker#v3.8.0:
         image: "registry.twilio.com/library/golang:a794242"
