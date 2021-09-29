@@ -27,6 +27,18 @@ func (k *Kubernetes) GetDaysUntilEnd() (float64, error) {
 	return math.Round(endDate.Sub(today).Hours() / 24), nil
 }
 
+// InExpiryRange allows program to provide a timeframe that
+// is considered "failed". Maybe the end of life deadline is 30
+// days away but with a threshold of 60 days you would consider
+// that failed
+func (k *Kubernetes) InExpiryRange(days int) (bool, error) {
+	d, err := k.GetDaysUntilEnd()
+	if err != nil {
+		return false, err
+	}
+	return d < float64(days), nil
+}
+
 // GetKubernetes returns the data for a single release of Kubernetes
 func (c *Client) GetKubernetes(version string) (Kubernetes, error) {
 	res := Kubernetes{}

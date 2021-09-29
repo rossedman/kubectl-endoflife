@@ -9,3 +9,6 @@ install: build
 
 test: 
 	go test -coverprofile=coverage.out -race -v ./...
+
+coverage:
+	go tool cover -html=coverage.out

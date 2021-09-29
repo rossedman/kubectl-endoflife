@@ -6,9 +6,42 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
+
+func TestAmazonEKS(t *testing.T) {
+	t.Run("returns days until end", func(t *testing.T) {
+		now := time.Now()
+		eks := AmazonEKS{
+			EOL: now.AddDate(0, 0, 8).Format("2006-01-02"),
+		}
+		days, err := eks.GetDaysUntilEnd()
+		assert.Nil(t, err)
+		assert.Equal(t, float64(7), days)
+	})
+
+	t.Run("within expiry range returns true", func(t *testing.T) {
+		now := time.Now()
+		eks := AmazonEKS{
+			EOL: now.AddDate(0, 0, 25).Format("2006-01-02"),
+		}
+		thres, err := eks.InExpiryRange(30)
+		assert.Nil(t, err)
+		assert.True(t, thres)
+	})
+
+	t.Run("within expiry range returns false when more than range", func(t *testing.T) {
+		now := time.Now()
+		eks := AmazonEKS{
+			EOL: now.AddDate(0, 0, 60).Format("2006-01-02"),
+		}
+		thres, err := eks.InExpiryRange(30)
+		assert.Nil(t, err)
+		assert.False(t, thres)
+	})
+}
 
 func TestGetEKS(t *testing.T) {
 	t.Run("retrieves response", func(t *testing.T) {

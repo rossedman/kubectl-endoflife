@@ -27,6 +27,18 @@ func (a *AmazonEKS) GetDaysUntilEnd() (float64, error) {
 	return math.Round(endDate.Sub(today).Hours() / 24), nil
 }
 
+// InExpiryRange allows program to provide a timeframe that
+// is considered "failed". Maybe the end of life deadline is 30
+// days away but with a threshold of 60 days you would consider
+// that failed
+func (a *AmazonEKS) InExpiryRange(days int) (bool, error) {
+	d, err := a.GetDaysUntilEnd()
+	if err != nil {
+		return false, err
+	}
+	return d < float64(days), nil
+}
+
 // GetAmazonEKS returns the data for a single release of EKS
 func (c *Client) GetAmazonEKS(version string) (AmazonEKS, error) {
 	res := AmazonEKS{}
