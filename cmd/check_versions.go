@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"code.hq.twilio.com/redman/kubectl-tks/pkg/client"
+	"code.hq.twilio.com/platform-base/kubectl-check/pkg/client"
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"

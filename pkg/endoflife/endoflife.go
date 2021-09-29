@@ -5,31 +5,31 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"time"
 )
 
 const (
 	BaseURL = "https://endoflife.date/api"
 )
 
+// Client represents an HTTP client for
+// accessing the endoflife.date API
 type Client struct {
 	BaseURL    string
 	HTTPClient *http.Client
 }
 
-func NewClient() *Client {
+// NewClient provides an implementation of the endoflife.date
+// HTTP Client for accessing the API
+func NewClient(url string, client *http.Client) *Client {
 	return &Client{
-		BaseURL: BaseURL,
-		HTTPClient: &http.Client{
-			Timeout: time.Second * 2,
-		},
+		BaseURL:    url,
+		HTTPClient: client,
 	}
 }
 
+// send is a generic method used by others to retrieve
+// data from the endoflife.date API
 func (c *Client) send(req *http.Request, v interface{}) error {
-	// req.Header.Set("Content-Type", "application/json; charset=utf-8")
-	// req.Header.Set("Accept", "application/json; charset=utf-8")
-
 	res, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return err
@@ -51,62 +51,4 @@ func (c *Client) send(req *http.Request, v interface{}) error {
 	}
 
 	return nil
-}
-
-func (c *Client) ListAmazonEKS() ([]AmazonEKS, error) {
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/amazon-eks.json", c.BaseURL), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	res := []AmazonEKS{}
-	if err := c.send(req, &res); err != nil {
-		return nil, err
-	}
-
-	return res, nil
-}
-
-func (c *Client) GetAmazonEKS(version string) (AmazonEKS, error) {
-	res := AmazonEKS{}
-
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/amazon-eks/%s.json", c.BaseURL, version), nil)
-	if err != nil {
-		return res, err
-	}
-
-	if err := c.send(req, &res); err != nil {
-		return res, err
-	}
-
-	return res, nil
-}
-
-func (c *Client) ListKubernetes() ([]Kubernetes, error) {
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/kubernetes.json", c.BaseURL), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	res := []Kubernetes{}
-	if err := c.send(req, &res); err != nil {
-		return nil, err
-	}
-
-	return res, nil
-}
-
-func (c *Client) GetKubernetes(version string) (Kubernetes, error) {
-	res := Kubernetes{}
-
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/kubernetes/%s.json", c.BaseURL, version), nil)
-	if err != nil {
-		return res, err
-	}
-
-	if err := c.send(req, &res); err != nil {
-		return res, err
-	}
-
-	return res, nil
 }

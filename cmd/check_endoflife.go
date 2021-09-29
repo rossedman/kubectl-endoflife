@@ -2,12 +2,14 @@ package cmd
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
-	"code.hq.twilio.com/redman/kubectl-tks/pkg/client"
-	"code.hq.twilio.com/redman/kubectl-tks/pkg/endoflife"
+	"code.hq.twilio.com/platform-base/kubectl-check/pkg/client"
+	"code.hq.twilio.com/platform-base/kubectl-check/pkg/endoflife"
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/cli-runtime/pkg/printers"
@@ -60,7 +62,9 @@ var endOfLifeCmd = &cobra.Command{
 		}
 
 		// get current version data for EKS
-		client := endoflife.NewClient()
+		client := endoflife.NewClient(endoflife.BaseURL, &http.Client{
+			Timeout: time.Second * 2,
+		})
 
 		// get EKS versions
 		if getEKS {
