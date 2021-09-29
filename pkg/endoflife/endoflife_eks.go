@@ -39,6 +39,16 @@ func (a *AmazonEKS) InExpiryRange(days int) (bool, error) {
 	return d < float64(days), nil
 }
 
+// IsExpired will return true if days left are less
+// than one
+func (a *AmazonEKS) IsExpired() (bool, error) {
+	d, err := a.GetDaysUntilEnd()
+	if err != nil {
+		return false, err
+	}
+	return d < 1, nil
+}
+
 // GetAmazonEKS returns the data for a single release of EKS
 func (c *Client) GetAmazonEKS(version string) (AmazonEKS, error) {
 	res := AmazonEKS{}

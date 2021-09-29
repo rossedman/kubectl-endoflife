@@ -39,6 +39,16 @@ func (k *Kubernetes) InExpiryRange(days int) (bool, error) {
 	return d < float64(days), nil
 }
 
+// IsExpired will return true if days left are less
+// than one
+func (k *Kubernetes) IsExpired() (bool, error) {
+	d, err := k.GetDaysUntilEnd()
+	if err != nil {
+		return false, err
+	}
+	return d < 1, nil
+}
+
 // GetKubernetes returns the data for a single release of Kubernetes
 func (c *Client) GetKubernetes(version string) (Kubernetes, error) {
 	res := Kubernetes{}

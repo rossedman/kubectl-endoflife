@@ -41,6 +41,26 @@ func TestAmazonEKS(t *testing.T) {
 		assert.Nil(t, err)
 		assert.False(t, thres)
 	})
+
+	t.Run("if date is expired return true", func(t *testing.T) {
+		now := time.Now()
+		eks := AmazonEKS{
+			EOL: now.AddDate(0, 0, -7).Format("2006-01-02"),
+		}
+		expired, err := eks.IsExpired()
+		assert.Nil(t, err)
+		assert.True(t, expired)
+	})
+
+	t.Run("if date is not expired return false", func(t *testing.T) {
+		now := time.Now()
+		eks := AmazonEKS{
+			EOL: now.AddDate(0, 0, 7).Format("2006-01-02"),
+		}
+		expired, err := eks.IsExpired()
+		assert.Nil(t, err)
+		assert.False(t, expired)
+	})
 }
 
 func TestGetEKS(t *testing.T) {
