@@ -52,3 +52,19 @@ func (c *Client) send(req *http.Request, v interface{}) error {
 
 	return nil
 }
+
+// GetAmazonEKS returns the data for a single release of EKS
+func (c *Client) Get(product Product, version string) (AmazonEKS, error) {
+	res := AmazonEKS{}
+
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/%s/%s.json", c.BaseURL, product.String(), version), nil)
+	if err != nil {
+		return res, err
+	}
+
+	if err := c.send(req, &res); err != nil {
+		return res, err
+	}
+
+	return res, nil
+}

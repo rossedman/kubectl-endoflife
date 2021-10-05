@@ -1,9 +1,7 @@
 package endoflife
 
 import (
-	"fmt"
 	"math"
-	"net/http"
 	"time"
 )
 
@@ -11,9 +9,7 @@ import (
 // by the endoflife.date/api/amazon-eks/<version>.json
 // endpoint
 type AmazonEKS struct {
-	EOL     string `json:"eol"`
-	Release string `json:"release"`
-	Latest  string `json:"latest"`
+	EOL string `json:"eol"`
 }
 
 // GetDaysUntilEnd parses the EOL date and provides a count
@@ -47,20 +43,4 @@ func (a *AmazonEKS) IsExpired() (bool, error) {
 		return false, err
 	}
 	return d < 1, nil
-}
-
-// GetAmazonEKS returns the data for a single release of EKS
-func (c *Client) GetAmazonEKS(version string) (AmazonEKS, error) {
-	res := AmazonEKS{}
-
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/amazon-eks/%s.json", c.BaseURL, version), nil)
-	if err != nil {
-		return res, err
-	}
-
-	if err := c.send(req, &res); err != nil {
-		return res, err
-	}
-
-	return res, nil
 }

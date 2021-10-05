@@ -79,10 +79,9 @@ func TestGetKubernetes(t *testing.T) {
 		client := NewClient(svr.URL, &http.Client{})
 
 		// create request
-		eks, err := client.GetKubernetes("1.19")
+		eks, err := client.Get(KubernetesProduct, "1.19")
 		assert.Nil(t, err)
 		assert.Equal(t, "2021-10-28", eks.EOL)
-		assert.Equal(t, "2020-08-27", eks.Release)
 	})
 
 	t.Run("fails when cannot be found", func(t *testing.T) {
@@ -96,7 +95,7 @@ func TestGetKubernetes(t *testing.T) {
 		client := NewClient(svr.URL, &http.Client{})
 
 		// create request
-		_, err := client.GetKubernetes("1.666")
+		_, err := client.Get(KubernetesProduct, "1.666")
 		assert.Error(t, err)
 	})
 }

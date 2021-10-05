@@ -1,9 +1,7 @@
 package endoflife
 
 import (
-	"fmt"
 	"math"
-	"net/http"
 	"time"
 )
 
@@ -11,9 +9,7 @@ import (
 // by the endoflife.date/api/kubernetes/<version>.json
 // endpoint
 type Kubernetes struct {
-	EOL     string `json:"eol"`
-	Release string `json:"release"`
-	Latest  string `json:"latest"`
+	EOL string `json:"eol"`
 }
 
 // GetDaysUntilEnd parses the EOL date and provides a count
@@ -47,20 +43,4 @@ func (k *Kubernetes) IsExpired() (bool, error) {
 		return false, err
 	}
 	return d < 1, nil
-}
-
-// GetKubernetes returns the data for a single release of Kubernetes
-func (c *Client) GetKubernetes(version string) (Kubernetes, error) {
-	res := Kubernetes{}
-
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/kubernetes/%s.json", c.BaseURL, version), nil)
-	if err != nil {
-		return res, err
-	}
-
-	if err := c.send(req, &res); err != nil {
-		return res, err
-	}
-
-	return res, nil
 }

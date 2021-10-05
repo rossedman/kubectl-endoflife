@@ -79,10 +79,9 @@ func TestGetEKS(t *testing.T) {
 		client := NewClient(svr.URL, &http.Client{})
 
 		// create request
-		eks, err := client.GetAmazonEKS("1.19")
+		eks, err := client.Get(AmazonEKSProduct, "1.19")
 		assert.Nil(t, err)
 		assert.Equal(t, "2022-04-01", eks.EOL)
-		assert.Equal(t, "2021-02-16", eks.Release)
 	})
 
 	t.Run("fails when cannot be found", func(t *testing.T) {
@@ -96,7 +95,7 @@ func TestGetEKS(t *testing.T) {
 		client := NewClient(svr.URL, &http.Client{})
 
 		// create request
-		_, err := client.GetAmazonEKS("1.666")
+		_, err := client.Get(AmazonEKSProduct, "1.666")
 		assert.Error(t, err)
 	})
 }
