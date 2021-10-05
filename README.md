@@ -37,13 +37,33 @@ TYPE         VERSION   EOL DATE     DAYS LEFT
 Kubernetes   1.19      2021-10-28   29
 ```
 
-To add EKS output, append an `--eks` flag to get more platform information
+To change what product is evaluated, use the `--product` flag
 
 ```shell
-❯ go run main.go endoflife --eks
+❯ kubectl check endoflife --product amazon-eks
 TYPE         VERSION   EOL DATE     DAYS LEFT
 EKS          1.19      2022-04-01   184
-Kubernetes   1.19      2021-10-28   29
+```
+
+This command also will exit `0` or `1` depending on the flags set. Exiting `1` means the cluster is within a threshold that the user deems expired. Here are some examples below
+
+```shell
+❯ kubectl check endoflife --product amazon-eks --expiry-range 200
+TYPE         VERSION   EOL DATE     DAYS LEFT
+amazon-eks   1.19      2022-04-01   177
+exit status 1
+
+❯ kubectl check endoflife --product amazon-eks --expiry-range 150
+TYPE         VERSION   EOL DATE     DAYS LEFT
+amazon-eks   1.19      2022-04-01   177
+```
+
+In the first example we have set anything less than 200 days to be expired and exit with a `1`. In the second example, we have shortened this timeframe and the command exits with a `0`. This becomes more valuable when we start to script with this command like below
+
+```shell
+if ! kubectl check endoflife --product amazon-eks --silent --expiry-range 30 ; then 
+    echo "starting upgrade now..."
+fi
 ```
 
 ### kubectl check versions

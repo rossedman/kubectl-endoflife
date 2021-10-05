@@ -1,7 +1,7 @@
 
-.PHONY: test install
+.PHONY: build test install coverage
 
-build: bin/kubectl-check
+build:
 	go build -o bin/kubectl-check
 
 install: build

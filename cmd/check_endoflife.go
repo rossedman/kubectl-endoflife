@@ -16,14 +16,16 @@ import (
 )
 
 var (
-	getEKS        bool
-	getKubernetes bool
+	product     string
+	silent      bool
+	expiryRange int
 )
 
 func init() {
 	rootCmd.AddCommand(endOfLifeCmd)
-	endOfLifeCmd.PersistentFlags().BoolVarP(&getEKS, "eks", "e", false, "retrieve EKS endoflife data")
-	endOfLifeCmd.PersistentFlags().BoolVarP(&getKubernetes, "kubernetes", "k", true, "retrieve Kubernetes endoflife data")
+	endOfLifeCmd.PersistentFlags().StringVarP(&product, "product", "p", "kubernetes", "the product to lookup, supported values: kubernetes, amazon-eks")
+	endOfLifeCmd.PersistentFlags().BoolVarP(&silent, "silent", "s", false, "silence the output, only provide exit codes")
+	endOfLifeCmd.PersistentFlags().IntVarP(&expiryRange, "expiry-range", "e", 0, "set a range which the command should exit 1, this is days within the expiration date")
 }
 
 // AmazonEKSRelease represents the data found at
@@ -56,6 +58,7 @@ var endOfLifeCmd = &cobra.Command{
 			},
 		}
 
+		// get cluster version from current context
 		current, _, err := GetClusterVersion()
 		if err != nil {
 			return err
@@ -66,43 +69,56 @@ var endOfLifeCmd = &cobra.Command{
 			Timeout: time.Second * 2,
 		})
 
-		// get EKS versions
-		if getEKS {
-			eks, err := client.GetAmazonEKS(current)
-			if err != nil {
-				return err
-			}
-
-			days, err := eks.GetDaysUntilEnd()
-			if err != nil {
-				return err
-			}
-
-			t.Rows = append(t.Rows, metav1.TableRow{
-				Cells: []interface{}{"EKS", current, eks.EOL, days},
-			})
+		// determine the product type
+		prod, err := endoflife.GetProduct(product)
+		if err != nil {
+			return err
 		}
 
-		// get upstream kubernetes versions
-		if getKubernetes {
-			k8s, err := client.GetKubernetes(current)
-			if err != nil {
-				return err
-			}
-
-			days, err := k8s.GetDaysUntilEnd()
-			if err != nil {
-				return err
-			}
-
-			t.Rows = append(t.Rows, metav1.TableRow{
-				Cells: []interface{}{"Kubernetes", current, k8s.EOL, days},
-			})
+		// retrieve the endoflife data
+		resp, err := client.Get(prod, current)
+		if err != nil {
+			return err
 		}
 
-		// print
-		p := printers.NewTablePrinter(printers.PrintOptions{})
-		p.PrintObj(t, os.Stdout)
+		// get date from response
+		date, err := resp.ConvertToTime()
+		if err != nil {
+			return err
+		}
+
+		// calculate how many days left
+		days, err := endoflife.GetDaysUntilEnd(date)
+		if err != nil {
+			return err
+		}
+
+		// check if within threshold
+		threshold, err := endoflife.InExpiryRange(date, expiryRange)
+		if err != nil {
+			return err
+		}
+
+		// check if expired
+		expired, err := endoflife.IsExpired(date)
+		if err != nil {
+			return err
+		}
+
+		// print if silent not set
+		if !silent {
+			// append to table output
+			t.Rows = append(t.Rows, metav1.TableRow{
+				Cells: []interface{}{prod.String(), current, resp.EOL, days},
+			})
+			p := printers.NewTablePrinter(printers.PrintOptions{})
+			p.PrintObj(t, os.Stdout)
+		}
+
+		if expired || threshold {
+			os.Exit(1)
+		}
+
 		return nil
 	},
 }
