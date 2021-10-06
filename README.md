@@ -56,7 +56,7 @@ amazon-eks   1.19      2022-04-01   177
 In the first example we have set anything less than 200 days to be expired and exit with a `1`. In the second example, we have shortened this timeframe and the command exits with a `0`. This becomes more valuable when we start to script with this command like below
 
 ```shell
-if ! kubectl check endoflife --product amazon-eks --silent --expiry-range 30 ; then 
+if ! kubectl endoflife --product amazon-eks --silent --expiry-range 30 ; then 
     echo "starting upgrade now..."
 fi
 ```
