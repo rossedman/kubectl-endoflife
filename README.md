@@ -9,10 +9,12 @@ A kubectl plugin that checks your clusters for component compatibility and Kuber
 Building and installing this plugin can be done by cloning this repo and running `make install` like this
 
 ```
-make install
+wget -c https://github.com/rossedman/kubectl-endoflife/releases/download/v0.1.0-alpha/kubectl-endoflife_0.1.0-alpha_darwin_amd64.tar.gz -O kubectl-endoflife.tar.gz
+tar -xvf kubectl-endoflife.tar.gz
+mv kubectl-endoflife /usr/local/bin/kubectl-endoflife
 ```
 
-Once installed you can now run 
+At this point you should be able to run 
 
 ```
 kubectl endoflife
