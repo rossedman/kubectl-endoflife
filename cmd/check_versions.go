@@ -7,16 +7,16 @@ import (
 	"os"
 	"strings"
 
-	_ "embed"
-
-	"code.hq.twilio.com/platform-base/kubectl-check/pkg/client"
 	"github.com/blang/semver/v4"
+	"github.com/rossedman/kubectl-check/pkg/client"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/printers"
 	"k8s.io/client-go/kubernetes"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	_ "embed"
 )
 
 var (

@@ -1,6 +1,6 @@
 package main
 
-import "code.hq.twilio.com/platform-base/kubectl-check/cmd"
+import "github.com/rossedman/kubectl-check/cmd"
 
 func main() {
 	cmd.Execute()

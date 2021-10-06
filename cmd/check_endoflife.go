@@ -7,8 +7,8 @@ import (
 	"os"
 	"time"
 
-	"code.hq.twilio.com/platform-base/kubectl-check/pkg/client"
-	"code.hq.twilio.com/platform-base/kubectl-check/pkg/endoflife"
+	"github.com/rossedman/kubectl-check/pkg/client"
+	"github.com/rossedman/kubectl-check/pkg/endoflife"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/printers"
 

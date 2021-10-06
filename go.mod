@@ -1,4 +1,4 @@
-module code.hq.twilio.com/platform-base/kubectl-check
+module github.com/rossedman/kubectl-check
 
 go 1.17
 
