@@ -10,8 +10,9 @@ import (
 	"code.hq.twilio.com/platform-base/kubectl-check/pkg/client"
 	"code.hq.twilio.com/platform-base/kubectl-check/pkg/endoflife"
 	"github.com/spf13/cobra"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/cli-runtime/pkg/printers"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
@@ -30,19 +31,25 @@ func init() {
 }
 
 var endOfLifeCmd = &cobra.Command{
-	Use:   "endoflife",
-	Short: "checks end of life date for cluster",
-	RunE: func(c *cobra.Command, args []string) error {
+	Use:     "endoflife",
+	Aliases: []string{"eol"},
+	Short:   "checks end of life date for cluster",
+	Long: `Endoflife (kubectl check endoflife) will check a cluster's version
+and retrieve its end of life date. This command exits 0 if the cluster is not 
+expired or outside the user defined expiration range. Alternatively, this 
+command exits 1 if the cluster is expired or within the user defined range.
 
-		// setup table output
-		t := &metav1.Table{
-			ColumnDefinitions: []metav1.TableColumnDefinition{
-				{Name: "Type", Type: "string"},
-				{Name: "Version", Type: "string"},
-				{Name: "EOL Date", Type: "string"},
-				{Name: "Days Left", Type: "string"},
-			},
-		}
+This command curently supports two products, upstream kubernetes as well as 
+amazon-eks, products can be switched like this:
+
+	kubectl check endoflife --product amazon-eks
+
+To have the command exit 1 within a certain range of expiration, the user
+can define a range like this:
+
+	kubectl check endoflife --expiry-range 30 
+`,
+	RunE: func(c *cobra.Command, args []string) error {
 
 		// get cluster version from current context
 		current, _, err := client.GetClusterVersion()
@@ -93,6 +100,15 @@ var endOfLifeCmd = &cobra.Command{
 
 		// print table output
 		if !silent && output == "table" {
+			// setup table output
+			t := &metav1.Table{
+				ColumnDefinitions: []metav1.TableColumnDefinition{
+					{Name: "Type", Type: "string"},
+					{Name: "Version", Type: "string"},
+					{Name: "EOL Date", Type: "string"},
+					{Name: "Days Left", Type: "string"},
+				},
+			}
 			// append to table output
 			t.Rows = append(t.Rows, metav1.TableRow{
 				Cells: []interface{}{prod.String(), current, resp.EOL, days},
