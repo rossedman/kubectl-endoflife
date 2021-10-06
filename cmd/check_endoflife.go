@@ -1,11 +1,10 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
-	"strconv"
-	"strings"
 	"time"
 
 	"code.hq.twilio.com/platform-base/kubectl-check/pkg/client"
@@ -19,6 +18,7 @@ var (
 	product     string
 	silent      bool
 	expiryRange int
+	output      string
 )
 
 func init() {
@@ -26,21 +26,7 @@ func init() {
 	endOfLifeCmd.PersistentFlags().StringVarP(&product, "product", "p", "kubernetes", "the product to lookup, supported values: kubernetes, amazon-eks")
 	endOfLifeCmd.PersistentFlags().BoolVarP(&silent, "silent", "s", false, "silence the output, only provide exit codes")
 	endOfLifeCmd.PersistentFlags().IntVarP(&expiryRange, "expiry-range", "e", 0, "set a range which the command should exit 1, this is days within the expiration date")
-}
-
-// AmazonEKSRelease represents the data found at
-// the endoflife.date endpoint: https://endoflife.date/api/amazon-eks.json
-type AmazonEKSRelease struct {
-	EOL     string `json:"eol"`
-	Release string `json:"release"`
-	Latest  string `json:"latest"`
-}
-
-// KubernetesRelease ...
-type KubernetesRelease struct {
-	EOL     string `json:"eol"`
-	Release string `json:"release"`
-	Latest  string `json:"latest"`
+	endOfLifeCmd.PersistentFlags().StringVarP(&output, "output", "o", "table", "set output, supported values: table, json")
 }
 
 var endOfLifeCmd = &cobra.Command{
@@ -59,12 +45,12 @@ var endOfLifeCmd = &cobra.Command{
 		}
 
 		// get cluster version from current context
-		current, _, err := GetClusterVersion()
+		current, _, err := client.GetClusterVersion()
 		if err != nil {
 			return err
 		}
 
-		// get current version data for EKS
+		// create endoflife client
 		client := endoflife.NewClient(endoflife.BaseURL, &http.Client{
 			Timeout: time.Second * 2,
 		})
@@ -105,8 +91,8 @@ var endOfLifeCmd = &cobra.Command{
 			return err
 		}
 
-		// print if silent not set
-		if !silent {
+		// print table output
+		if !silent && output == "table" {
 			// append to table output
 			t.Rows = append(t.Rows, metav1.TableRow{
 				Cells: []interface{}{prod.String(), current, resp.EOL, days},
@@ -115,30 +101,30 @@ var endOfLifeCmd = &cobra.Command{
 			p.PrintObj(t, os.Stdout)
 		}
 
+		// print json output
+		if !silent && output == "json" {
+			output := struct {
+				Type     string  `json:"type"`
+				Version  string  `json:"version"`
+				EOL      string  `json:"eol-date"`
+				DaysLeft float64 `json:"days-left"`
+			}{
+				Type:     prod.String(),
+				Version:  current,
+				EOL:      resp.EOL,
+				DaysLeft: days,
+			}
+			j, err := json.MarshalIndent(&output, "", "  ")
+			if err != nil {
+				return err
+			}
+			fmt.Println(string(j))
+		}
+
 		if expired || threshold {
 			os.Exit(1)
 		}
 
 		return nil
 	},
-}
-
-func GetClusterVersion() (string, string, error) {
-	// get cluster version
-	clientset := client.InitClient()
-	ver, err := clientset.ServerVersion()
-	if err != nil {
-		return "", "", err
-	}
-
-	// determine cluster version for endoflife.date
-	minor, err := strconv.Atoi(strings.ReplaceAll(ver.Minor, "+", ""))
-	if err != nil {
-		return "", "", err
-	}
-
-	current := fmt.Sprintf("%s.%s", ver.Major, strconv.Itoa(minor))
-	next := fmt.Sprintf("%s.%s", ver.Major, strconv.Itoa(minor+1))
-
-	return current, next, nil
 }

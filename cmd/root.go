@@ -8,7 +8,7 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use: "tks",
+	Use: "check",
 }
 
 func Execute() {
