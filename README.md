@@ -1,4 +1,4 @@
-# kubectl-check
+# kubectl-endoflife
 
 ![example](preview.png)
 
